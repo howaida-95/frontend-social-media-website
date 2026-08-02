@@ -1,0 +1,416 @@
+
+/* =========================================================
+   GRADIENT UTILITIES
+   ========================================================= */
+
+@utility gradient-primary {
+  background-image:
+    linear-gradient(
+      135deg,
+      var(--color-primary-light),
+      var(--color-primary-dark)
+    );
+}
+
+@utility gradient-text {
+  background-image:
+    linear-gradient(
+      135deg,
+      var(--color-gradient-start),
+      var(--color-gradient-end)
+    );
+
+  background-clip: text;
+  color: transparent;
+}
+
+
+/* =========================================================
+   BUTTON
+   =========================================================
+   Usage:
+     className="btn btn-solid"
+     className="btn btn-primary btn-lg"
+     className="btn btn-outline btn-sm"
+     className="btn btn-icon"
+   ========================================================= */
+
+@utility btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 1.875rem; /* 30px */
+
+  padding-inline: var(--spacing-4);
+
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  line-height: 1.125rem; /* 18px */
+  font-weight: 500;
+
+  border-radius: var(--radius-sm);
+
+  transition:
+    background-color 150ms ease,
+    color 150ms ease,
+    opacity 150ms ease,
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    transform 150ms ease;
+
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+@utility btn-primary {
+  background-image:
+    linear-gradient(
+      135deg,
+      var(--color-primary-light),
+      var(--color-primary-dark)
+    );
+
+  color: var(--color-white);
+}
+
+@utility btn-primary:hover {
+  filter: brightness(1.05);
+}
+
+@utility btn-primary:active {
+  filter: brightness(0.95);
+}
+
+@utility btn-solid {
+  background-color: var(--color-action);
+  color: var(--color-action-content);
+  box-shadow: var(--shadow-button);
+}
+
+@utility btn-solid:hover {
+  background-color: var(--color-text-strong);
+}
+
+@utility btn-outline {
+  background-color: transparent;
+  color: var(--color-content);
+  border: 0.0625rem solid var(--color-border);
+}
+
+@utility btn-outline:hover {
+  background-color: var(--color-surface-muted);
+  border-color: var(--color-neutral-300);
+}
+
+@utility btn-icon {
+  padding: var(--spacing-2);
+  aspect-ratio: 1;
+  border-radius: var(--radius-sm);
+  background-color: transparent;
+  border: 0.0625rem solid var(--color-border);
+  color: var(--color-neutral-500);
+}
+
+@utility btn-icon:hover {
+  background-color: var(--color-surface-muted);
+  color: var(--color-content);
+}
+
+
+/* -------------------------------------------------------
+   BUTTON SIZES
+   ------------------------------------------------------- */
+
+@utility btn-sm {
+  min-height: 1.75rem; /* 28px */
+  padding-inline: var(--spacing-3);
+  font-size: var(--text-xs);
+}
+
+@utility btn-lg {
+  min-height: 2.5rem; /* 40px */
+  padding-inline: var(--spacing-6);
+  font-size: var(--text-md);
+}
+
+
+/* -------------------------------------------------------
+   BUTTON DISABLED
+   ------------------------------------------------------- */
+
+@utility btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+
+/* =========================================================
+   AUTH COMPONENT UTILITIES
+   Based on the supplied Figma sign-in frame.
+   ========================================================= */
+
+/*
+ * Figma auth card:
+ *   400px width
+ *   453px height
+ *   12px radius
+ *
+ * Responsive implementation:
+ *   width: 100%
+ *   max-width: 25rem (400px)
+ */
+
+@utility auth-card {
+  width: 100%;
+  max-width: 25rem;
+  border-radius: var(--radius-lg);
+  background-color: var(--color-surface);
+  overflow: hidden;
+}
+
+
+/*
+ * Inner form container:
+ *   Figma: 400px × 391px
+ *   8px radius
+ */
+
+@utility auth-form {
+  width: 100%;
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+}
+
+
+/*
+ * Figma input:
+ *   320px × 30px
+ *   6px radius
+ *
+ * Width intentionally uses 100% so the parent controls
+ * responsive sizing.
+ */
+
+@utility auth-input {
+  width: 100%;
+  min-height: 1.875rem;
+
+  padding-inline: var(--spacing-3);
+
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface);
+
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  line-height: 1.02375rem;
+  font-weight: 400;
+
+  color: var(--color-content);
+  outline: none;
+
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+@utility auth-input::placeholder {
+  color: var(--color-content);
+  opacity: 0.65;
+}
+
+@utility auth-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 0.125rem rgb(79 57 246 / 15%);
+}
+
+
+/*
+ * Form label:
+ *   13px / 18px / 500
+ */
+
+@utility form-label {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  line-height: 1.125rem;
+  font-weight: 500;
+  color: var(--color-content);
+}
+
+
+/*
+ * Auth heading:
+ *   17px / 24px / 700
+ */
+
+@utility auth-title {
+  font-family: var(--font-sans);
+  font-size: var(--text-lg);
+  line-height: 1.5rem;
+  font-weight: 700;
+  color: var(--color-content);
+  text-align: center;
+}
+
+
+/*
+ * Auth description:
+ *   13px / 18px / 400
+ *   65% opacity
+ */
+
+@utility auth-description {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  line-height: 1.125rem;
+  font-weight: 400;
+  color: var(--color-content);
+  opacity: 0.65;
+  text-align: center;
+}
+
+
+/*
+ * Auth footer:
+ *   Figma: 400px × 58px
+ */
+
+@utility auth-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 3.625rem;
+
+  background-color: var(--color-surface);
+}
+
+
+/*
+ * Auth link:
+ *   13px / 18px / 500
+ */
+
+@utility auth-link {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  line-height: 1.125rem;
+  font-weight: 500;
+  color: var(--color-content);
+  transition: opacity 150ms ease;
+}
+
+@utility auth-link:hover {
+  opacity: 0.7;
+}
+
+
+/* =========================================================
+   HERO COMPONENT UTILITIES
+   ========================================================= */
+
+/*
+ * Figma hero title:
+ *   60px / 60px / 700
+ *   gradient text
+ *
+ * Desktop keeps the Figma size.
+ * Mobile scales down using responsive utilities in markup.
+ */
+
+@utility hero-title {
+  max-width: 37.6875rem; /* 603px */
+  font-family: var(--font-sans);
+  font-size: var(--text-6xl);
+  line-height: 1;
+  font-weight: 700;
+
+  background-image:
+    linear-gradient(
+      135deg,
+      var(--color-gradient-start),
+      var(--color-gradient-end)
+    );
+
+  background-clip: text;
+  color: transparent;
+}
+
+
+/*
+ * Figma hero description:
+ *   30px / 36px / 400
+ *   approximately #312c85
+ */
+
+@utility hero-description {
+  max-width: 25.75rem; /* 412px */
+  font-family: var(--font-sans);
+  font-size: var(--text-4xl);
+  line-height: 1.2;
+  font-weight: 400;
+
+  color: var(--color-indigo-deep-800);
+}
+
+
+/*
+ * Figma rating text:
+ *   16px / 24px / 500
+ */
+
+@utility rating-text {
+  font-family: var(--font-sans);
+  font-size: var(--text-md);
+  line-height: 1.5rem;
+  font-weight: 500;
+
+  color: var(--color-indigo-deep-700);
+}
+
+
+/* =========================================================
+   RESPONSIVE HELPERS
+   ========================================================= */
+
+/*
+ * The Figma frame is 1536px wide, but that does NOT mean
+ * 1536px is a required application breakpoint.
+ *
+ * Use the following utilities/classes in components to
+ * progressively scale the Figma design.
+ */
+
+@media (max-width: 64rem) {
+  .hero-title {
+    font-size: clamp(2.5rem, 6vw, 3.75rem);
+  }
+
+  .hero-description {
+    font-size: clamp(1.5rem, 3vw, 1.875rem);
+  }
+}
+
+@media (max-width: 48rem) {
+  .hero-title {
+    max-width: 100%;
+    font-size: clamp(2.25rem, 8vw, 3rem);
+  }
+
+  .hero-description {
+    max-width: 100%;
+    font-size: clamp(1.25rem, 5vw, 1.875rem);
+  }
+
+  .auth-card {
+    max-width: 25rem;
+  }
+}
+
+@media (max-width: 30rem) {
+  .auth-card {
+    max-width: 100%;
+  }
+}
