@@ -1,8 +1,9 @@
 
+import AppRouter from '@router/index'
 function App() {
   return (
     <>
-    home page
+      <AppRouter/>
     </>
   )
 }
