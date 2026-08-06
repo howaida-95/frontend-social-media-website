@@ -1,6 +1,61 @@
-# React + TypeScript + Vite
+# PingUp Frontend
 
-## Docker
+A React + TypeScript + Vite frontend for a social media app UI.
+
+This repository contains the client application for the PingUp social experience, including feed, messaging, connections, discover, profile, and post creation screens.
+
+## Key Features
+
+- React 19 + TypeScript + Vite
+- Tailwind CSS styling with custom layout and UI components
+- React Router DOM powered routing with protected and public routes
+- Lazy-loaded pages with `<Suspense>` for split-chunk loading
+- Auth + app shell layout separation via `AuthLayout` and `MainLayout`
+- Pages:
+  - Login
+  - Feed
+  - Messages
+  - Chat
+  - Connections
+  - Discover
+  - Profile
+  - Create Post
+- Docker compose support for production container builds
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 20+ / npm
+- Docker (optional, for container preview)
+
+### Install dependencies
+
+```bash
+npm install
+```
+
+### Run in development
+
+```bash
+npm run dev
+```
+
+Open the app in your browser at the local Vite URL shown in the terminal.
+
+### Build for production
+
+```bash
+npm run build
+```
+
+### Preview production build
+
+```bash
+npm run preview
+```
+
+### Docker
 
 Build and run the production container:
 
@@ -10,78 +65,28 @@ docker compose up --build
 
 The app will be available at http://localhost:8080.
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Project Structure
 
-Currently, two official plugins are available:
+- `src/App.tsx` — app entry and router mount
+- `src/router` — route definitions, protected/public wrappers
+- `src/layout` — authenticated and main app layouts
+- `src/pages` — page views for feed, messages, profile, discover, and more
+- `src/styles` — global styles and theme tokens
+- `src/constants/routes.ts` — centralized route constants
+- `src/components` — reusable UI components
+- `src/hooks` — custom hooks
+- `src/services` — service and API helpers
+- `src/types` — shared TypeScript types
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Scripts
 
-## React Compiler
+- `npm run dev` — start Vite development server
+- `npm run build` — compile TypeScript and bundle app for production
+- `npm run preview` — preview the production bundle locally
+- `npm run lint` — run ESLint across the frontend source
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+## Notes
 
-Note: This will impact Vite dev & build performances.
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
-```
+- The app uses path aliasing for imports such as `@/pages` and `@/router`.
+- The project is configured for strict TypeScript support and modern React features.
+- Screenshots are available showing the UI for Feed, Messages, Connections, Discover, Profile, and Create Post screens.
