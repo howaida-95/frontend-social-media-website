@@ -8,7 +8,10 @@ Then use them everywhere:
 
 export const ROUTES = {
   HOME: '/',
-  LOGIN: '/login',
+  SIGN_IN: '/signIn',
+  SIGN_UP: '/signup',
+  RESET_PASSWORD: '/reset-password',
+  FORGOT_PASSWORD: '/forgot-password',
   FEED: '/feed',
   MESSAGES: '/messages',
   DISCOVER: '/discover',
