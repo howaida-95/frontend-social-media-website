@@ -5,7 +5,7 @@ import ProtectedRoute from '@/router/ProtectedRoute'
 import MainLayout from '@/layout/MainLayout';
 import AuthLayout from '@/layout/AuthLayout';
 import PublicRoute from '@/router/PublicRoute';
-const LogIn = lazy(() => import('@pages/Login'))
+const SignIn = lazy(() => import('@/pages/auth/SignIn'))
 const Feed = lazy(() => import('@pages/Feed'))
 const Messages = lazy(() => import('@/pages/Messages'))
 const ChatBox = lazy(() => import('@/pages/ChatBox'))
@@ -32,8 +32,8 @@ export default function index() {
           {/* Public group */}
           <Route element={<AuthLayout />}>
             <Route
-              path={ROUTES.LOGIN}
-              element={<PublicRoute><LogIn /></PublicRoute>}
+              path={ROUTES.SIGN_IN}
+              element={<PublicRoute><SignIn /></PublicRoute>}
             />
           </Route>
         {/* Protected layout group */}
