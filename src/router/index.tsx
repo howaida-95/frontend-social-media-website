@@ -25,7 +25,7 @@ while its chunk loads. If you want per-route fallbacks
    } />
 wrap each element individually instead:
 */
-export default function index() {
+export default function AppRouter() {
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <Routes>
