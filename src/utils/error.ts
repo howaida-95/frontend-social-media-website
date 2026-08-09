@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { ApiError } from '@/types/api';
+import type { ApiError } from '@/api/types';
 
 export const getApiError = (error: unknown): ApiError => {
   if (axios.isAxiosError(error)) {
