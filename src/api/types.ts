@@ -15,18 +15,13 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  emailVerified: boolean;
+  provider: string;
+  googleId: string;
+  avatar: string;
+  role: string;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
-/*
-Your service becomes:
-----------------------
-export const getUser = async (
-  id: string
-): Promise<User> => {
-  const response = await api.get<ApiResponse<User>>(
-    `/users/${id}`
-  );
-  return response.data.data;
-};
-
-*/

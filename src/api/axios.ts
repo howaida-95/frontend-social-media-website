@@ -7,19 +7,12 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true,
 });
 
 // Request interceptor
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const token = "dummy data"; // Replace with your authentication logic
-
-    if (token) {
-      config.headers = {
-        ...(config.headers as Record<string, unknown>),
-        Authorization: `Bearer ${token}`,
-      } as typeof config.headers;
-    }
 
     return config;
   },
@@ -55,6 +48,9 @@ api.interceptors.response.use(
 
       switch (status) {
         case 401:
+          // redirect to the login page
+          window.location.href = '/login';
+          
           break;
 
         case 403:
