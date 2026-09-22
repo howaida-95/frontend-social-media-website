@@ -1,24 +1,18 @@
 export interface User {
-  id: string;
-  name: string;
+  id: number;
+  firstName: string;
+  lastName: string;
   username: string;
   email: string;
-  avatarUrl?: string;
+  emailVerified: boolean;
+  provider: 'google' | 'local' | null;
+  googleId: string | null;
+  avatar: string | null;
+  bio: string | null;
+  role: 'user' | 'admin';
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
-  role: string;
-  status: string;
-  isEmailVerified: boolean;
-  isPhoneVerified: boolean;
-  isActive: boolean;
-  isDeleted: boolean;
-  isVerified: boolean;
-  isPremium: boolean;
-}
-
-export interface AuthTokens {
-  accessToken: string;
-  refreshToken: string;
 }
 
 export interface LoginPayload {
@@ -27,33 +21,21 @@ export interface LoginPayload {
 }
 
 export interface LoginResponse {
+  message: string;
   user: User;
-  tokens: AuthTokens;
 }
 
 export interface RegisterPayload {
   firstName: string;
   lastName: string;
+  username: string;
   email: string;
   password: string;
 }
 
 export interface RegisterResponse {
+  message: string;
   user: User;
-  tokens: AuthTokens;
-}
-
-export interface RefreshTokenPayload {
-  refreshToken: string; // from cookies
-}
-
-export interface RefreshTokenResponse {
-  tokens: AuthTokens;
-} 
-
-export interface AuthResponse {
-  user: User;
-  tokens: AuthTokens;
 }
 
 export interface ForgotPasswordPayload {
@@ -61,27 +43,19 @@ export interface ForgotPasswordPayload {
 }
 
 export interface ForgotPasswordResponse {
-  success: boolean;
   message: string;
 }
 
 export interface ResetPasswordPayload {
-  token: string; // from email
-  newPassword: string; // new password
+  token: string;
+  password: string;
 }
 
 export interface ResetPasswordResponse {
-  success: boolean; 
   message: string;
 }
 
 export interface LogoutResponse {
-  success: boolean;
-  message: string;
-}
-
-export interface GoogleAuthResponse {
-  success: boolean;
   message: string;
 }
 
@@ -92,8 +66,11 @@ export interface UserResponse {
 export interface AuthContextValue {
   user: User | null;
   isAuthenticated: boolean;
-  /** True while the session is being restored from storage on app load */
+  /** True while the session is being restored via GET /auth/me on app load */
   isLoading: boolean;
-  setSession: (response: AuthResponse) => void;
+  login: (payload: LoginPayload) => Promise<User>;
+  register: (payload: RegisterPayload) => Promise<User>;
+  logout: () => Promise<void>;
+  startGoogleLogin: () => void;
   clearSession: () => void;
 }

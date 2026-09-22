@@ -10,33 +10,22 @@ const api = axios.create({
   withCredentials: true,
 });
 
-// Request interceptor
-api.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
+type UnauthorizedHandler = () => void;
 
-    return config;
-  },
-  (error: AxiosError) => Promise.reject(error)
+let onUnauthorized: UnauthorizedHandler | null = null;
+
+/** AuthProvider registers this so 401 clears session without hard navigation loops */
+export const setUnauthorizedHandler = (handler: UnauthorizedHandler | null) => {
+  onUnauthorized = handler;
+};
+
+api.interceptors.request.use(
+  (config: InternalAxiosRequestConfig) => config,
+  (error: AxiosError) => Promise.reject(error),
 );
 
-// Response interceptor
-/*
-The interceptor should perform actual global HTTP behavior, 
-then reject the error so the feature layer can handle the user-facing state.
-*/
-// intercept responses coming back from the server.
-// use() registers two callbacks.
 api.interceptors.response.use(
-  /*
-  There are two possible situations:
-  Response
-    │
-    ├── Success → first function
-    │
-    └── Error   → second function
-  */
-  (response: AxiosResponse) => response, // This handles successful responses, simply returns the response unchanged.
-
+  (response: AxiosResponse) => response,
   (error: unknown) => {
     if (!axios.isAxiosError(error)) {
       console.error('Unexpected non-Axios error:', error);
@@ -48,9 +37,7 @@ api.interceptors.response.use(
 
       switch (status) {
         case 401:
-          // redirect to the login page
-          window.location.href = '/login';
-          
+          onUnauthorized?.();
           break;
 
         case 403:
@@ -73,47 +60,7 @@ api.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 export default api;
-/*
-the complete flow:
-Feed
- │
- │ useFeed()
- ↓
-React Query
- │
- │ GET /feed
- ↓
-Axios
- │
- ↓
-Backend
- │
- ├───────────────┐
- │               │
-200              500
- │               │
- ↓               ↓
-success       interceptor
- │               │
- ↓               ↓
-data         case 500
-                 │
-                 ↓
-          Promise.reject(error)
-                 │
-                 ↓
-             React Query
-                 │
-                 ↓
-             isError
-                 │
-                 ↓
-             Feed UI
-                 │
-                 ↓
-          "Unable to load feed"
-*/
