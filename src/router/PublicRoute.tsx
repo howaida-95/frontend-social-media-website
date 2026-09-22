@@ -1,19 +1,21 @@
 // routes/PublicRoute.tsx
+import {type ReactNode} from "react";
 import { Navigate } from "react-router-dom";
 import { ROUTES } from "@/constants/routes";
+import { useAuth } from "@/features/auth/context/useAuth";
 
-interface PublicRouteProps {
-  children: React.ReactNode;
-}
+const PublicRoute = ({ children }: {children: ReactNode}) => {
+  const { isLoading, isAuthenticated } = useAuth();
 
-const PublicRoute = ({ children }: PublicRouteProps) => {
-  const token = true; // Replace with your real auth logic, e.g. useAuth()
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
-  if (token) {
+  // if user is authenticated, redirect to home page
+  if (isAuthenticated) {
     return <Navigate to={ROUTES.HOME} replace />;
   }
 
   return children;
 };
-
 export default PublicRoute;

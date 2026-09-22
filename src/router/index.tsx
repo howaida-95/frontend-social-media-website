@@ -5,14 +5,17 @@ import ProtectedRoute from '@/router/ProtectedRoute'
 import MainLayout from '@/layout/MainLayout';
 import AuthLayout from '@/layout/AuthLayout';
 import PublicRoute from '@/router/PublicRoute';
-const SignIn = lazy(() => import('@/pages/auth/SignIn'))
-const Feed = lazy(() => import('@pages/Feed'))
-const Messages = lazy(() => import('@/pages/Messages'))
-const ChatBox = lazy(() => import('@/pages/ChatBox'))
-const Connections = lazy(() => import('@/pages/Connections'))
-const Discover = lazy(() => import('@/pages/Discover'))
-const Profile = lazy(() => import('@/pages/Profile'))
-const CreatePost = lazy(() => import('@/pages/CreatePost'))
+const SignIn = lazy(() => import('@/pages/auth/SignIn'));
+const SignUp = lazy(() => import('@/pages/auth/Signup')); 
+const ForgotPassword = lazy(() => import('@/pages/auth/ForgetPassword'));
+const ResetPassword = lazy(() => import('@/pages/auth/ResetPassword'));
+const Feed = lazy(() => import('@/pages/Feed'));
+const Messages = lazy(() => import('@/pages/Messages'));
+const ChatBox = lazy(() => import('@/pages/ChatBox'));
+const Connections = lazy(() => import('@/pages/Connections'));
+const Discover = lazy(() => import('@/pages/Discover'));
+const Profile = lazy(() => import('@/pages/Profile'));
+const CreatePost = lazy(() => import('@/pages/CreatePost'));
 
 /*
 One <Suspense> wraps all routes here, so the fallback shows on any route change 
@@ -34,6 +37,21 @@ export default function AppRouter() {
             <Route
               path={ROUTES.SIGN_IN}
               element={<PublicRoute><SignIn /></PublicRoute>}
+            />
+
+            <Route
+              path={ROUTES.SIGN_UP}
+              element={<PublicRoute><SignUp /></PublicRoute>}
+            />
+
+            <Route
+              path={ROUTES.FORGOT_PASSWORD}
+              element={<PublicRoute><ForgotPassword /></PublicRoute>}
+            />
+
+            <Route
+              path={ROUTES.RESET_PASSWORD}
+              element={<PublicRoute><ResetPassword /></PublicRoute>}
             />
           </Route>
         {/* Protected layout group */}
