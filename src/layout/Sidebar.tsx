@@ -1,5 +1,6 @@
-import { NavLink } from "react-router-dom";
-import { ROUTES } from "@/constants";
+import { NavLink, useNavigate } from 'react-router-dom';
+import { ROUTES } from '@/constants';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 import {
   Home,
   MessageCircle,
@@ -10,14 +11,14 @@ import {
   Zap,
   LogOut,
   X,
-} from "lucide-react";
+} from 'lucide-react';
 
 const links = [
-  { to: ROUTES.HOME, label: "Feed", icon: Home },
-  { to: ROUTES.MESSAGES, label: "Messages", icon: MessageCircle },
-  { to: ROUTES.CONNECTIONS, label: "Connections", icon: Users },
-  { to: ROUTES.DISCOVER, label: "Discover", icon: Search },
-  { to: ROUTES.PROFILE, label: "Profile", icon: User },
+  { to: ROUTES.HOME, label: 'Feed', icon: Home },
+  { to: ROUTES.MESSAGES, label: 'Messages', icon: MessageCircle },
+  { to: ROUTES.CONNECTIONS, label: 'Connections', icon: Users },
+  { to: ROUTES.DISCOVER, label: 'Discover', icon: Search },
+  { to: ROUTES.PROFILE, label: 'Profile', icon: User },
 ];
 
 interface SidebarProps {
@@ -26,6 +27,19 @@ interface SidebarProps {
 }
 
 const Sidebar = ({ mobileOpen = false, onClose }: SidebarProps) => {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logout();
+    onClose?.();
+    navigate(ROUTES.SIGN_IN, { replace: true });
+  };
+
+  const displayName = user
+    ? `${user.firstName} ${user.lastName}`.trim() || user.username
+    : 'User';
+
   return (
     <>
       {/* Mobile scrim */}
@@ -42,7 +56,7 @@ const Sidebar = ({ mobileOpen = false, onClose }: SidebarProps) => {
           bg-(--color-surface) border-r border-(--color-border)
           transition-transform duration-200 ease-in-out
           lg:static lg:translate-x-0
-          ${mobileOpen ? "translate-x-0" : "-translate-x-full"}
+          ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
         `}
       >
         {/* Logo */}
@@ -75,8 +89,8 @@ const Sidebar = ({ mobileOpen = false, onClose }: SidebarProps) => {
                  text-sm font-medium transition-colors duration-150
                  ${
                    isActive
-                     ? "bg-indigo-50 text-(--color-primary)"
-                     : "text-neutral-500 hover:bg-(--color-surface-muted) hover:text-(--color-content)"
+                     ? 'bg-indigo-50 text-(--color-primary)'
+                     : 'text-neutral-500 hover:bg-(--color-surface-muted) hover:text-(--color-content)'
                  }`
               }
             >
@@ -102,18 +116,31 @@ const Sidebar = ({ mobileOpen = false, onClose }: SidebarProps) => {
 
         {/* User footer */}
         <div className="flex items-center gap-3 border-t border-(--color-border) px-4 py-4">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-(--color-surface-muted) text-[var(--color-neutral-500)]">
-            <User className="h-4 w-4" />
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-(--color-surface-muted) text-[var(--color-neutral-500)]">
+            {user?.avatar ? (
+              <img
+                src={user.avatar}
+                alt=""
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <User className="h-4 w-4" />
+            )}
           </div>
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold text-(--color-content)">
-              John Warren
+              {displayName}
             </p>
             <p className="truncate text-xs text-content-muted">
-              @john_warren
+              @{user?.username ?? 'user'}
             </p>
           </div>
-          <button className="btn-icon" aria-label="Log out">
+          <button
+            type="button"
+            className="btn-icon"
+            aria-label="Log out"
+            onClick={handleLogout}
+          >
             <LogOut className="h-4 w-4" />
           </button>
         </div>
