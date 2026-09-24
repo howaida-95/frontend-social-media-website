@@ -16,6 +16,8 @@ import type {
 } from '@/features/auth/types/auth.types';
 
 /*
+auth provider own the session(user / logged-in state) & login, register change that 
+Those either set or clear the current user after talking to the API.
 purpose:
 1- provide auth context to the app
 2- restore session from cookies

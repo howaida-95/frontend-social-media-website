@@ -1,40 +1,25 @@
-import { useState } from 'react';
-import { useAuth } from '@/features/auth/context/useAuth';
-import { getApiError } from '@/utils/error';
+import { Link } from 'react-router-dom';
+import AuthPageLayout from '@/features/auth/components/AuthPageLayout';
+import SignInForm from '@/features/auth/components/SignIn';
+import { ROUTES } from '@/constants';
 
-const SignIn = () => {
-  const { login } = useAuth();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  const handleLogin = async () => {
-    try {
-      setLoading(true);
-      setError('');
-
-      const user = await login({
-        email: 'test@example.com',
-        password: '123456',
-      });
-
-      console.log('User:', user);
-    } catch (err) {
-      const apiError = getApiError(err);
-      setError(apiError.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+const SignInPage = () => {
   return (
-    <div>
-      {error && <p>{error}</p>}
-
-      <button onClick={handleLogin} disabled={loading}>
-        {loading ? 'Logging in...' : 'Login'}
-      </button>
-    </div>
+    <AuthPageLayout
+      title="Sign in to"
+      description="Welcome back! Please sign in to continue"
+      footer={
+        <>
+          <span>Don&apos;t have an account?</span>
+          <Link to={ROUTES.SIGN_UP} className="auth-link font-semibold">
+            Sign up
+          </Link>
+        </>
+      }
+    >
+      <SignInForm />
+    </AuthPageLayout>
   );
 };
 
-export default SignIn;
+export default SignInPage;

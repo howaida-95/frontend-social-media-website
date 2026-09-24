@@ -8,18 +8,28 @@ export const signInSchema = z.object({
 
 export type SignInFormValues = z.infer<typeof signInSchema>;
 
-// Sign Up Schema
+// Sign Up Schema (aligned with backend register validation)
 export const signUpSchema = z
   .object({
-    firstName   : z.string().min(2, "First name must be at least 2 characters"),
-    lastName: z.string().min(2, "Last name must be at least 2 characters"),
-    email: z.string().min(1, "Email is required").email("Enter a valid email address"),
-    password: z.string().regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/, "Password must be at least 8 characters and contain at least one uppercase letter, one lowercase letter, one number, and one special character"),
-    confirmPassword: z.string().min(1, "Please confirm your password"),
+    firstName: z.string().trim().min(1, 'First name is required').max(100),
+    lastName: z.string().trim().min(1, 'Last name is required').max(100),
+    username: z
+      .string()
+      .trim()
+      .min(3, 'Username must be at least 3 characters')
+      .max(50)
+      .regex(/^[a-zA-Z0-9]+$/, 'Username must be alphanumeric'),
+    email: z.string().min(1, 'Email is required').email('Enter a valid email address'),
+    password: z
+      .string()
+      .min(8, 'Password must be at least 8 characters')
+      .regex(/[A-Za-z]/, 'Password must contain a letter')
+      .regex(/[0-9]/, 'Password must contain a number'),
+    confirmPassword: z.string().min(1, 'Please confirm your password'),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
+    message: 'Passwords do not match',
+    path: ['confirmPassword'],
   });
 
 export type SignUpFormValues = z.infer<typeof signUpSchema>;
@@ -30,11 +40,20 @@ export const forgotPasswordSchema = z.object({
 });
 export type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
 
-// Reset Password Schema
-export const resetPasswordSchema = z.object({
-  password: z.string().regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/, "Password must be at least 8 characters and contain at least one uppercase letter, one lowercase letter, one number, and one special character"),
-  confirmPassword: z.string().min(1, "Please confirm your password"),
-});
+// Reset Password Schema (token comes from URL query, not the form)
+export const resetPasswordSchema = z
+  .object({
+    password: z
+      .string()
+      .min(8, 'Password must be at least 8 characters')
+      .regex(/[A-Za-z]/, 'Password must contain a letter')
+      .regex(/[0-9]/, 'Password must contain a number'),
+    confirmPassword: z.string().min(1, 'Please confirm your password'),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Passwords do not match',
+    path: ['confirmPassword'],
+  });
 export type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
 
 

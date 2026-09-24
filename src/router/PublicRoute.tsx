@@ -2,7 +2,7 @@
 import {type ReactNode} from "react";
 import { Navigate } from "react-router-dom";
 import { ROUTES } from "@/constants/routes";
-import { useAuth } from "@/features/auth/context/useAuth";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 
 const PublicRoute = ({ children }: {children: ReactNode}) => {
   const { isLoading, isAuthenticated } = useAuth();
