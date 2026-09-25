@@ -23,6 +23,7 @@ export interface LoginPayload {
 export interface LoginResponse {
   message: string;
   user: User;
+  accessTokenExpiresAt: string;
 }
 
 export interface RegisterPayload {
@@ -36,6 +37,7 @@ export interface RegisterPayload {
 export interface RegisterResponse {
   message: string;
   user: User;
+  accessTokenExpiresAt: string;
 }
 
 export interface ForgotPasswordPayload {
@@ -61,6 +63,7 @@ export interface LogoutResponse {
 
 export interface UserResponse {
   user: User;
+  accessTokenExpiresAt: string | null;
 }
 
 export interface AuthContextValue {

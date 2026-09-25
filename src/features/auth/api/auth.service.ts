@@ -1,5 +1,6 @@
 import api from '@/api/axios';
 import { AUTH_ENDPOINTS } from '@/features/auth/api/auth.endpoints';
+import { refreshSession } from '@/features/auth/api/refreshSession';
 
 import type {
   LoginPayload,
@@ -45,6 +46,10 @@ export const authService = {
       data,
     );
     return response.data;
+  },
+
+  refreshToken: async () => {
+    return refreshSession();
   },
 
   logout: async (): Promise<LogoutResponse> => {
