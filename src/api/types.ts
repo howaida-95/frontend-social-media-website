@@ -1,6 +1,7 @@
 export interface ApiErrorResponse {
   message: string;
   code?: string;
+  retryAfter?: number;
   errors?: Record<string, string[]>;
 }
 
@@ -8,6 +9,7 @@ export interface ApiError {
   message: string;
   status?: number;
   code?: string;
+  retryAfter?: number;
   errors?: Record<string, string[]>;
 }
 

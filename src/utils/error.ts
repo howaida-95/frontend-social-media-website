@@ -12,6 +12,10 @@ export const getApiError = (error: unknown): ApiError => {
           'Something went wrong. Please try again.',
         status: response.status,
         code: response.data?.code,
+        retryAfter:
+          typeof response.data?.retryAfter === 'number'
+            ? response.data.retryAfter
+            : undefined,
         errors: response.data?.errors,
       };
     }

@@ -1,30 +1,95 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ChevronRight } from 'lucide-react';
 import { useAppForm } from '@/features/auth/hooks/useForm';
 import { forgotPasswordSchema } from '@/features/auth/schemas/authSchemas';
 import { authService } from '@/features/auth/api/auth.service';
+import { getApiError } from '@/utils/error';
+
+const DEFAULT_RESEND_COOLDOWN_SECONDS = 60;
 
 /** Forgot-password fields + submit only. Layout comes from AuthPageLayout. */
 export default function ForgotPasswordForm() {
   const [successMessage, setSuccessMessage] = useState('');
+  const [remaining, setRemaining] = useState(0);
+  const [submittedEmail, setSubmittedEmail] = useState('');
+  const [isResending, setIsResending] = useState(false);
 
-  const { register, submitHandler, errors, isSubmitting, apiError, reset } = useAppForm({
-    schema: forgotPasswordSchema,
-    defaultValues: {
-      email: '',
-    },
-  });
+  const { register, submitHandler, errors, isSubmitting, apiError, setApiError, reset } =
+    useAppForm({
+      schema: forgotPasswordSchema,
+      defaultValues: {
+        email: '',
+      },
+    });
+
+  useEffect(() => {
+    if (remaining <= 0) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setRemaining((prev) => prev - 1);
+    }, 1000);
+
+    return () => window.clearTimeout(timer);
+  }, [remaining]);
+
+  const startCooldown = (seconds?: number) => {
+    setRemaining(seconds && seconds > 0 ? seconds : DEFAULT_RESEND_COOLDOWN_SECONDS);
+  };
 
   const onSubmit = submitHandler(async (data) => {
-    // call the api to send the reset link
-    const response = await authService.forgotPassword(data);
-    // if the response is successful, set the success message
-    setSuccessMessage(
-      response.message || 'If that email exists, a reset link has been sent',
-    );
-    // reset the form
-    reset();
+    try {
+      const response = await authService.forgotPassword(data);
+      setSuccessMessage(
+        response.message || 'If that email exists, a reset link has been sent',
+      );
+      setSubmittedEmail(data.email);
+      startCooldown(response.retryAfter);
+      setApiError('');
+      reset({ email: data.email });
+    } catch (error) {
+      const apiErr = getApiError(error);
+
+      if (apiErr.status === 429) {
+        startCooldown(apiErr.retryAfter);
+        setApiError(apiErr.message);
+        return;
+      }
+
+      throw error;
+    }
   });
+
+  const handleResend = async () => {
+    if (!submittedEmail || remaining > 0 || isSubmitting || isResending) {
+      return;
+    }
+
+    setApiError('');
+    setIsResending(true);
+
+    try {
+      const response = await authService.forgotPassword({ email: submittedEmail });
+      setSuccessMessage(
+        response.message || 'If that email exists, a reset link has been sent',
+      );
+      startCooldown(response.retryAfter);
+    } catch (error) {
+      const apiErr = getApiError(error);
+
+      if (apiErr.status === 429) {
+        startCooldown(apiErr.retryAfter);
+      }
+
+      setApiError(apiErr.message);
+    } finally {
+      setIsResending(false);
+    }
+  };
+
+  const canResend =
+    Boolean(submittedEmail) && remaining <= 0 && !isSubmitting && !isResending;
 
   return (
     <>
@@ -69,6 +134,26 @@ export default function ForgotPasswordForm() {
           {!isSubmitting && <ChevronRight className="h-4 w-4" aria-hidden="true" />}
         </button>
       </form>
+
+      {submittedEmail && (
+        <div className="mt-4 space-y-1 text-center text-sm text-slate-600">
+          <p>Didn&apos;t receive the email?</p>
+          {remaining > 0 ? (
+            <p className="font-medium text-slate-800" aria-live="polite">
+              Resend in {remaining}s
+            </p>
+          ) : (
+            <button
+              type="button"
+              onClick={handleResend}
+              disabled={!canResend}
+              className="auth-link font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isResending ? 'Sending...' : 'Resend'}
+            </button>
+          )}
+        </div>
+      )}
     </>
   );
 }

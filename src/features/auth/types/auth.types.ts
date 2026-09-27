@@ -46,6 +46,7 @@ export interface ForgotPasswordPayload {
 
 export interface ForgotPasswordResponse {
   message: string;
+  retryAfter?: number;
 }
 
 export interface ResetPasswordPayload {
