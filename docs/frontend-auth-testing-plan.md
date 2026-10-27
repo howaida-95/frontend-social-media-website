@@ -1,6 +1,6 @@
 ---
 name: Frontend Auth Testing Plan
-overview: "Manual + future automated tests for cookie session, proactive refresh, Axios 401 safety net, multi-tab lock, Google OAuth, and route guards."
+overview: "Manual + future automated tests for cookie session, proactive refresh, Axios 401 safety net, multi-tab lock, Google OAuth, forgot-password resend cooldown, and route guards."
 isProject: false
 ---
 
@@ -8,7 +8,7 @@ isProject: false
 
 ## Goal
 
-Verify the SPA correctly handles **dual httpOnly cookies** (access + refresh), AuthProvider bootstrap, proactive refresh from `accessTokenExpiresAt`, Axios 401→refresh→retry, multi-tab coordination, Google redirect, and route guards — without relying on tokens in `localStorage`.
+Verify the SPA correctly handles **dual httpOnly cookies** (access + refresh), AuthProvider bootstrap, proactive refresh from `accessTokenExpiresAt`, Axios 401→refresh→retry, multi-tab coordination, Google redirect, forgot/reset password (including resend cooldown synced to backend `retryAfter`), and route guards — without relying on tokens in `localStorage`.
 
 ## Prerequisites
 
@@ -68,7 +68,7 @@ Before feature cases, confirm cookies and Network behavior:
 
 ---
 
-## Phase 3 — Proactive refresh (PRIMARY)
+## Phase 3 — Proactive refresh 
 
 Requires short `JWT_EXPIRES_IN` (e.g. `2m`) or patience with `15m`.
 
@@ -115,11 +115,26 @@ Requires short `JWT_EXPIRES_IN` (e.g. `2m`) or patience with `15m`.
 
 ## Phase 7 — Forgot / reset password
 
+Cooldown is **60 seconds** per email (backend-enforced). Frontend countdown is UX only; `retryAfter` from the API is authoritative.
+
 | # | Case | Steps | Expected |
 | - | ---- | ----- | -------- |
-| 7.1 | Forgot | Submit email | Success message (no email enumeration); check inbox if SMTP configured |
-| 7.2 | Reset | Open link with `?token=` → new password | Success; old sessions revoked — old tabs should lose refresh; must login again |
-| 7.3 | Same as current password | If backend rejects | Show error message |
+| 7.1 | Forgot success | Open `/forgot-password` → submit a valid local-account email | `POST /auth/forgot-password` → **200**; body includes `message` + `retryAfter` (e.g. `60`); success banner shown; check inbox if SMTP configured |
+| 7.2 | No enumeration | Submit a random / unknown email | Still **200** with the same-style success message (do not reveal whether the email exists) | 
+| 7.3 | Countdown UX | After a successful send | UI shows “Didn't receive the email?” and **Resend in Ns** counting down to **Resend**; Resend disabled while `remaining > 0` |
+| 7.4 | Resend after cooldown | Wait until countdown hits 0 → click **Resend** | Second `POST /auth/forgot-password` → **200** with new `retryAfter`; countdown restarts; success message updates |
+| 7.5 | Client bypass / 429 sync | During countdown, force another request (DevTools Network replay, or submit again quickly) | Backend returns **429** with `{ message, retryAfter }`; UI shows the error and **resyncs countdown** from `retryAfter` (not a stale client timer) |
+| 7.6 | Skip refresh on 401 | Wrong credentials on other auth pages is separate; on forgot-password | Failed/429 forgot calls must **not** trigger `POST /auth/refresh-token` (endpoint is in `AUTH_SKIP_REFRESH`) |
+| 7.7 | Reset with token | Open `/reset-password?token=...` from email → set new password | **200**; can sign in with new password |
+| 7.8 | Sessions revoked after reset | Complete reset while another tab is still logged in | Old refresh sessions invalidated — other tab loses session on next API/refresh; must login again |
+| 7.9 | Same as current password | Reset with the same password the account already uses | Backend **400**; form shows error message |
+| 7.10 | Invalid / expired token | Open reset page with bad or used token | Error from API; password not changed |
+
+### Phase 7 pass criteria
+
+- Frontend never treats its local timer as security; spam/bypass still hits **429**.
+- Successful and unknown-email flows look the same (no enumeration).
+- After reset, previous sessions cannot keep using the old refresh cookie.
 
 ---
 
@@ -140,14 +155,138 @@ Requires short `JWT_EXPIRES_IN` (e.g. `2m`) or patience with `15m`.
 3. Phase 4 (interceptor — fastest refresh proof)  
 4. Phase 3 (proactive — with short JWT)  
 5. Phase 5 (two tabs)  
-6. Phase 6–7 (Google + password)  
-7. Phase 8  
+6. Phase 6 (Google)  
+7. Phase 7 (forgot + resend cooldown + reset) — use Network tab for `retryAfter` / 429  
+8. Phase 8  
 
 ---
 
-## Future automated tests (optional — not set up yet)
+## Future automated tests
 
-No Vitest/Playwright in the repo today. When adding tests, prefer this order:
+### How to implement (step-by-step)
+
+Run from `frontend/`.
+
+#### Step 1 — Install tooling
+
+```bash
+npm install -D vitest happy-dom @testing-library/react @testing-library/jest-dom @testing-library/user-event msw @playwright/test
+npx playwright install chromium   # only needed for E2E
+```
+
+Scripts already in `package.json`:
+
+| Script | Purpose |
+| ------ | ------- |
+| `npm test` | Vitest once |
+| `npm run test:watch` | Vitest watch |
+| `npm run test:e2e` | Playwright |
+
+Vitest lives in `vite.config.ts` (`environment: 'happy-dom'`, `include: src/__tests__/**/*.{test,spec}.{ts,tsx}`, `exclude: e2e`).
+
+#### Step 2 — Shared harness (inside `src/__tests__/`)
+
+| File | Role |
+| ---- | ---- |
+| `setup.ts` | MSW lifecycle + Testing Library cleanup |
+| `test-utils.tsx` | `renderWithProviders` (Router + optional AuthProvider) |
+| `fixtures/auth.ts` | Fake user / login / forgot / 429 payloads |
+| `mocks/handlers.ts` | Default MSW handlers for `/auth/*` |
+| `mocks/server.ts` | `setupServer(...handlers)` |
+
+Import as `@/__tests__/mocks/server`, `@/__tests__/fixtures/auth`, etc.
+
+#### Step 3 — Unit tests (mirrored under `src/__tests__/`)
+
+| File | Asserts |
+| ---- | ------- |
+| `__tests__/features/auth/schemas/authSchemas.test.ts` | Valid / invalid Zod payloads |
+| `__tests__/utils/error.test.ts` | `getApiError` reads `retryAfter` on 429 |
+| `__tests__/features/auth/api/refreshSession.test.ts` | Success, single-flight, peer lock, failure |
+| `__tests__/api/axios.test.ts` | 401 → refresh → retry; login 401 skips refresh |
+| `__tests__/features/auth/hooks/useAuth.test.tsx` | Throws outside provider; returns context |
+| `__tests__/features/auth/hooks/useForm.test.ts` | Validation, submit, `apiError` mapping |
+
+#### Step 4 — Component tests
+
+| File | Asserts |
+| ---- | ------- |
+| `__tests__/features/auth/context/AuthProvider.test.tsx` | Mount → `/me`; logout path when `/me` 401 |
+| `__tests__/features/auth/components/SignIn.test.tsx` | Validation; success → home; 401 |
+| `__tests__/features/auth/components/Signup.test.tsx` | Validation; success → home; 409 |
+| `__tests__/features/auth/components/ForgetPassword.test.tsx` | Success countdown; 429 syncs UI |
+| `__tests__/features/auth/components/ResetPassword.test.tsx` | Missing token; validation; success → sign-in; expired token API error |
+
+#### Step 5 — E2E (Playwright)
+
+| File | Asserts |
+| ---- | ------- |
+| `e2e/auth/forgot-reset-password.spec.ts` | Forgot form + countdown (skips if API down) |
+| `e2e/auth/session-restore.spec.ts` | Logged-out `/` → `/signIn` |
+| `e2e/auth/register-login.spec.ts` | Signup + bad login |
+
+```bash
+# terminals: backend + frontend running
+npm run test:e2e
+```
+
+Optional login cookie check: set `E2E_EMAIL` / `E2E_PASSWORD`.
+
+#### Step 6 — Run checklist
+
+```bash
+npm test                 # must be green on every PR
+npm run test:e2e         # when stack is up
+```
+
+**Current status:** Mirrored `__tests__/` tree; `npm test` covers unit + component suites.
+
+### Folder structure
+
+Everything Vitest-related lives under `src/__tests__/`. Production code stays clean. E2E stays at repo root.
+
+```text
+frontend/
+├── src/
+│   ├── api/axios.ts
+│   ├── utils/error.ts
+│   ├── features/auth/          # production only
+│   └── __tests__/              # all Vitest code
+│       ├── setup.ts
+│       ├── test-utils.tsx
+│       ├── fixtures/auth.ts
+│       ├── mocks/
+│       │   ├── handlers.ts
+│       │   └── server.ts
+│       ├── api/axios.test.ts
+│       ├── utils/error.test.ts
+│       └── features/auth/
+│           ├── api/refreshSession.test.ts
+│           ├── schemas/authSchemas.test.ts
+│           ├── context/AuthProvider.test.tsx
+│           ├── components/
+│           │   ├── SignIn.test.tsx
+│           │   ├── Signup.test.tsx
+│           │   └── ForgetPassword.test.tsx
+│           └── hooks/
+│               ├── useAuth.test.tsx
+│               └── useForm.test.ts
+├── e2e/                        # Playwright
+│   └── auth/
+│       ├── register-login.spec.ts
+│       ├── session-restore.spec.ts
+│       └── forgot-reset-password.spec.ts
+├── playwright.config.ts
+└── docs/frontend-auth-testing-plan.md
+```
+
+**Conventions**
+
+| Layer | Location | Tooling |
+| ----- | -------- | ------- |
+| Unit / component + harness | `src/__tests__/**` | Vitest + RTL + MSW |
+| E2E | `e2e/**/*.spec.ts` | Playwright |
+Do **not** put E2E specs under `src/` — they need a real browser and usually a running API (or Playwright route mocks).
 
 ### Unit (Vitest)
 
@@ -162,7 +301,8 @@ No Vitest/Playwright in the repo today. When adding tests, prefer this order:
 | Target | What to assert |
 | ------ | -------------- |
 | AuthProvider | On mount calls `/me`; schedules from `accessTokenExpiresAt`; logout clears user |
-| SignIn / SignUp | Submit → service called; errors rendered |
+| SignIn / SignUp | Validation errors; success → navigate home; API 401/409 shown |
+| ForgotPasswordForm | Success starts countdown from `retryAfter`; 429 updates `remaining` from response; Resend disabled while cooling down |
 
 ### E2E (Playwright)
 
@@ -171,6 +311,7 @@ No Vitest/Playwright in the repo today. When adding tests, prefer this order:
 | Register → home → refresh page → still logged in | Use real or test API |
 | Delete access cookie → next click recovers | Cookie API in Playwright |
 | Logout → protected URL redirects | |
+| Forgot → countdown → Resend | Assert 200 then blocked until cooldown; optional stub clock |
 | Google | Usually staged / skipped in CI |
 
 ---
@@ -179,10 +320,11 @@ No Vitest/Playwright in the repo today. When adding tests, prefer this order:
 
 When something fails, capture:
 
-- Case ID (e.g. 4.1)
+- Case ID (e.g. 4.1 / 7.5)
 - Backend `JWT_EXPIRES_IN`
 - Cookies present before/after (`token` / `refresh_token`)
-- Network sequence (status codes for `/me`, `/refresh-token`, failed API)
+- Network sequence (status codes for `/me`, `/refresh-token`, `/forgot-password`, failed API)
+- For cooldown bugs: request timestamps + response `retryAfter` / `Retry-After` header
 - Console errors
 - One tab vs two tabs
 

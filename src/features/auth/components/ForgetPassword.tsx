@@ -52,6 +52,7 @@ export default function ForgotPasswordForm() {
       const apiErr = getApiError(error);
 
       if (apiErr.status === 429) {
+        setSubmittedEmail(data.email);
         startCooldown(apiErr.retryAfter);
         setApiError(apiErr.message);
         return;
